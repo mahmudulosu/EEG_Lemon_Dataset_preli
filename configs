@@ -1,0 +1,24 @@
+task: binary
+
+sampling_rate: 250
+segment_seconds: 5
+dwt_wavelet: "db4"
+dwt_level: 6
+
+feature_select_percentile: 60
+
+eeg_dir: "C:/research/EEG_Domain/combined/combined_new"
+
+cv:
+  n_splits: 10
+  shuffle: true
+  random_state: 42
+
+dnn:
+  epochs: 150
+  batch_size: 32
+  dropout: 0.5
+  early_stopping_patience: 10
+  val_split: 0.1
+
+output_dir: "results"
