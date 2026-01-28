@@ -1,0 +1,36 @@
+Young vs Old Classification from Resting-State EEG (EO/EC)
+
+This repository implements a complete pipeline to classify participants into young vs old age groups using resting-state EEG recordings and participant metadata.
+
+Data
+
+EEG signals are stored as CSV files in Common_Data/
+
+File naming format is assumed like:
+participantID_EO.csv and participantID_EC.csv
+
+Metadata is read from participants_LSD_andLEMON.csv, using:
+
+Age bins: 20-25, 25-30 → young
+
+Age bins: 60-65, 65-70, 70-75 → old
+
+Pipeline
+
+Load EO and/or EC EEG recordings for subjects present in the metadata
+
+Extract DWT (db4) features (mean, variance, RMS) from wavelet coefficients
+
+Apply StandardScaler + ANOVA feature selection (top 60%)
+
+Train and evaluate models:
+
+Linear SVM
+
+DNN (Keras)
+
+Evaluation modes
+
+Subject-level mode (recommended): one sample per subject created from both EO+EC (concatenated or merged)
+
+Segment-level mode: segment EEG into fixed windows (e.g., 2 seconds) and evaluate using subject-wise splits (GroupKFold / GroupShuffleSplit) to avoid leakage.
