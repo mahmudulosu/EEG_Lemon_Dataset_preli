@@ -1,0 +1,63 @@
+Subject Identification from EEG (Multi-class) — 160 Hz Dataset
+
+This project performs participant/subject identification from EEG signals using a classical machine learning pipeline.
+
+Dataset overview
+
+EEG recordings are stored as CSV files in a folder (e.g., csv_output/).
+
+File names contain the subject ID as the prefix before the underscore, e.g.:
+
+S001_EyeClose.csv, S002_EyeOpen.csv, etc.
+
+Sampling rate is 160 Hz.
+
+Each file contains ~60 seconds of data (≈ 9600 samples).
+
+The last column is Time, which is removed before processing.
+
+The remaining columns are EEG channels (often 64 channels; optionally a 16-channel subset can be used).
+
+Preprocessing and segmentation
+
+Only the first 60 seconds are used.
+
+Each recording is split into fixed-length non-overlapping windows (configurable):
+
+Example: 5-second windows → 12 segments per file
+
+Example: 1-second windows → 60 segments per file
+
+Feature extraction (DWT)
+
+For each segment and each EEG channel:
+
+Apply Discrete Wavelet Transform (default: db4)
+
+Compute statistics from wavelet coefficient arrays:
+
+Mean, Variance, RMS
+
+Features from all channels and all coefficients are concatenated into one feature vector per segment.
+
+The code automatically reduces the DWT level if it is too high for short segments (prevents wavelet errors).
+
+Feature selection and classification
+
+ANOVA F-test selects the top 60% most discriminative features (fit on training data only).
+
+Features are standardized using StandardScaler.
+
+A Linear SVM is trained to classify segments into subject IDs (multi-class).
+
+Evaluation
+
+Data is split into train/test using a stratified split so each subject appears in both sets.
+
+Outputs:
+
+Test accuracy
+
+Confusion matrix
+
+Classification report (precision/recall/F1 per subject)
