@@ -1,0 +1,3 @@
+python ec_eo_dwt_classification.py --data_dir "C:\research\EEG_Domain\combined\combined_new" --window_sec 10 --step_sec 10 --model dnn --cv segment
+python ec_eo_dwt_classification.py --data_dir "C:\research\EEG_Domain\combined\combined_new" --window_sec 10 --step_sec 1 --model rf --cv segment
+python ec_eo_dwt_classification.py --data_dir "C:\research\EEG_Domain\combined\combined_new" --window_sec 10 --step_sec 10 --model svm --cv subject
