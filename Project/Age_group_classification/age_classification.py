@@ -262,4 +262,120 @@ def main():
                     help="Only for segment mode (choose which condition file to segment).")
 
     ap.add_argument("--sampling_rate", type=int, default=250)
-    ap.add_argument("--seg_
+    ap.add_argument("--seg_sec", type=float, default=2.0, help="Segment length in seconds for segment mode.")
+    ap.add_argument("--wavelet", type=str, default="db4")
+    ap.add_argument("--level", type=int, default=5)
+    ap.add_argument("--percentile", type=int, default=60)
+    ap.add_argument("--model", choices=["svm", "dnn"], default="dnn")
+    ap.add_argument("--cv", choices=["kfold", "holdout"], default="kfold")
+    ap.add_argument("--k", type=int, default=10)
+    ap.add_argument("--epochs", type=int, default=50)
+    ap.add_argument("--batch", type=int, default=32)
+    args = ap.parse_args()
+
+    age_mapping = build_age_mapping(args.meta_csv)
+    print(f"[META] participants with valid age bins: {len(age_mapping)}")
+
+    if args.mode == "subject":
+        X, y, groups = build_subject_level_dataset(
+            args.data_dir, age_mapping,
+            wavelet=args.wavelet, level=args.level,
+            merge_mode=args.merge_mode
+        )
+        print("[DATA] subject-level samples:", X.shape[0], "| features:", X.shape[1])
+        print("[DATA] label dist (young=0, old=1):", np.bincount(y) if len(y) else "empty")
+
+        if args.cv == "holdout":
+            # stratified because one sample per subject
+            from sklearn.model_selection import train_test_split
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42, stratify=y
+            )
+            if args.model == "svm":
+                y_pred = train_eval_svm(X_train, y_train, X_test, y_test, percentile=args.percentile)
+            else:
+                y_pred = train_eval_dnn(X_train, y_train, X_test, y_test,
+                                        percentile=args.percentile, epochs=args.epochs, batch=args.batch)
+
+            acc = accuracy_score(y_test, y_pred)
+            print(f"\nAccuracy: {acc:.4f}")
+            print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+            print("\nReport:\n", classification_report(y_test, y_pred, target_names=["young", "old"], zero_division=0))
+
+        else:
+            skf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=42)
+            accs = []
+            for fold, (tr, te) in enumerate(skf.split(X, y), start=1):
+                X_train, y_train = X[tr], y[tr]
+                X_test, y_test = X[te], y[te]
+
+                if args.model == "svm":
+                    y_pred = train_eval_svm(X_train, y_train, X_test, y_test, percentile=args.percentile)
+                else:
+                    y_pred = train_eval_dnn(X_train, y_train, X_test, y_test,
+                                            percentile=args.percentile, epochs=args.epochs, batch=args.batch)
+
+                acc = accuracy_score(y_test, y_pred)
+                accs.append(acc)
+                print(f"Fold {fold:02d} acc: {acc:.4f}")
+
+            print(f"\nMean CV Accuracy: {np.mean(accs):.4f}")
+
+    else:
+        # segment mode: must split by subject (group-wise)
+        X, y, groups = build_segment_level_dataset(
+            args.data_dir, age_mapping,
+            wavelet=args.wavelet, level=args.level,
+            sampling_rate=args.sampling_rate,
+            seg_sec=args.seg_sec,
+            condition=args.condition
+        )
+        print("[DATA] segment-level samples:", X.shape[0], "| features:", X.shape[1])
+        print("[DATA] subjects:", len(np.unique(groups)))
+        print("[DATA] label dist (young=0, old=1):", np.bincount(y) if len(y) else "empty")
+
+        if args.cv == "holdout":
+            gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+            tr, te = next(gss.split(X, y, groups=groups))
+            X_train, y_train = X[tr], y[tr]
+            X_test, y_test = X[te], y[te]
+
+            if args.model == "svm":
+                y_pred = train_eval_svm(X_train, y_train, X_test, y_test, percentile=args.percentile)
+            else:
+                y_pred = train_eval_dnn(X_train, y_train, X_test, y_test,
+                                        percentile=args.percentile, epochs=args.epochs, batch=args.batch)
+
+            acc = accuracy_score(y_test, y_pred)
+            print(f"\nAccuracy: {acc:.4f}")
+            print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+            print("\nReport:\n", classification_report(y_test, y_pred, target_names=["young", "old"], zero_division=0))
+
+        else:
+            gkf = GroupKFold(n_splits=args.k)
+            accs = []
+            for fold, (tr, te) in enumerate(gkf.split(X, y, groups=groups), start=1):
+                X_train, y_train = X[tr], y[tr]
+                X_test, y_test = X[te], y[te]
+
+                if len(np.unique(y_test)) < 2:
+                    print(f"Fold {fold:02d} skipped (single-class test fold).")
+                    continue
+
+                if args.model == "svm":
+                    y_pred = train_eval_svm(X_train, y_train, X_test, y_test, percentile=args.percentile)
+                else:
+                    y_pred = train_eval_dnn(X_train, y_train, X_test, y_test,
+                                            percentile=args.percentile, epochs=args.epochs, batch=args.batch)
+
+                acc = accuracy_score(y_test, y_pred)
+                accs.append(acc)
+                print(f"Fold {fold:02d} acc: {acc:.4f} | test dist: {np.bincount(y_test)}")
+
+            if accs:
+                print(f"\nMean CV Accuracy: {np.mean(accs):.4f} (n={len(accs)} folds)")
+            else:
+                print("\nNo valid folds evaluated.")
+
+if __name__ == "__main__":
+    main()
