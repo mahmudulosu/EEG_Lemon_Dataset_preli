@@ -1,0 +1,55 @@
+EEG Gender Classification (EC/EO) using Wavelet Features + ML/DL
+
+This project predicts gender (Male/Female) from resting-state EEG recordings stored as CSV files.
+
+Data layout
+
+EEG signals are saved per subject in CSV format.
+
+File names start with the subject ID (e.g., sub-001_EC.csv or sub-001_EO.csv).
+
+Two conditions are supported:
+
+EC = Eyes Closed
+
+EO = Eyes Open
+
+Participant metadata (participant_id, gender, etc.) is read from a separate CSV file.
+
+Pipeline
+
+Segmentation: each EEG recording is split into fixed windows (e.g., 2s or 5s at 250 Hz).
+
+Feature extraction: Discrete Wavelet Transform (db4) is applied per EEG channel, then statistical features are computed from each wavelet coefficient set:
+
+mean, variance, RMS
+
+Preprocessing:
+
+Standardization (z-score) using StandardScaler
+
+Feature selection using ANOVA (SelectPercentile, typically top 60% features)
+
+Models:
+
+Linear SVM
+
+Random Forest
+
+Gradient Boosting
+
+DNN (Keras)
+
+Evaluation:
+
+K-Fold cross-validation
+
+Confusion matrix + classification report
+
+Optional t-SNE visualization for selected participants
+
+Important note about validation
+
+If cross-validation is done on segments directly, segments from the same subject may appear in both train and test, which can inflate performance.
+
+A stricter evaluation uses subject-wise split (Group/subject CV) so that no subject appears in both train and test folds.
