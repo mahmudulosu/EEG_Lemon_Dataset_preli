@@ -1,0 +1,103 @@
+EEG EC/EO Classification using DWT Features and Machine Learning
+
+This project implements a complete pipeline to classify EEG recordings into Eyes Closed (EC) and Eyes Open (EO) using Discrete Wavelet Transform (DWT) features and multiple supervised learning models.
+
+1) Dataset and Input Format
+
+The input dataset is a folder containing EEG recordings stored as CSV files.
+
+Each CSV file contains a multichannel EEG time series where:
+
+Columns correspond to EEG channels
+
+Rows correspond to time samples
+
+Labels are inferred from the filename:
+
+If "EC" appears in the filename → label EC
+
+Otherwise → label EO
+
+Subject identity is derived from the filename prefix before the first underscore:
+
+Example: S01_EC.csv → subject_id = S01
+
+2) Feature Extraction (Wavelet + Statistics)
+
+For each EEG recording:
+
+A DWT decomposition is applied channel-wise using:
+
+Wavelet: db4
+
+Decomposition level: 6
+
+For every wavelet coefficient array (approximation + details), the following statistics are computed:
+
+Standard deviation
+
+Mean
+
+RMS (root mean square)
+
+Variance
+
+Kurtosis
+
+Skewness
+
+All extracted statistics across channels and coefficients are concatenated into a single feature vector per file.
+
+This produces a tabular feature matrix suitable for classical ML and neural networks.
+
+3) Feature Selection
+
+To reduce dimensionality and retain the most discriminative features:
+
+ANOVA F-test (f_classif) is used with SelectPercentile
+
+The pipeline keeps the top 60% of features ranked by class-separability
+
+Important: Feature selection is fitted only on training data inside each split/fold to avoid data leakage.
+
+4) Normalization
+
+Standard scaling (StandardScaler) is applied for most models
+
+For RBM-based models, MinMaxScaler is used because RBMs perform better with values in [0, 1]
+
+Scaling is always fitted on training data and applied to test data.
+
+5) Models Implemented
+
+The code supports multiple classifiers:
+
+DNN (Keras/TensorFlow): feed-forward network with dropout + early stopping
+
+SVM (linear kernel)
+
+Random Forest
+
+Gradient Boosting
+
+MLPClassifier (sklearn neural network)
+
+RBM + Logistic Regression (stacked BernoulliRBM with logistic regression)
+
+DBN (pydbn): optional Deep Belief Network classifier (requires pydbn)
+
+6) Evaluation (Subject-wise)
+
+To ensure realistic performance estimation and prevent subject leakage:
+
+Subject-wise Holdout Split: subjects are split into train/test sets (e.g., 80/20)
+
+Subject-wise K-Fold Cross-Validation: uses GroupKFold where each subject appears in only one fold
+
+The evaluation reports:
+
+Accuracy
+
+Confusion matrix
+
+Classification report (precision/recall/F1)
