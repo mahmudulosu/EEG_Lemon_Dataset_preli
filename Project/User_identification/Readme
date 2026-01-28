@@ -1,0 +1,32 @@
+ubject Identification from EEG (Segment-level, within-session)
+
+This project identifies the subject ID from resting-state EEG data stored as CSV files.
+
+Method
+
+Each EEG file is segmented into 2-second windows (250 Hz → 500 samples).
+
+For each segment and each EEG channel, Discrete Wavelet Transform (db4) is applied and statistical features are extracted:
+
+mean, variance, RMS of wavelet coefficients
+
+Features are standardized (StandardScaler) and reduced using ANOVA feature selection (top 60%).
+
+Multiple classifiers are trained and evaluated:
+
+Linear SVM
+
+Random Forest
+
+Gradient Boosting
+
+Deep Neural Network (Keras)
+
+Output
+
+Test accuracy
+
+Confusion matrix and classification report (per subject)
+
+Note
+The dataset is split within each subject (segments from the same subject are present in both train and test). This measures within-session subject identification. For a stricter evaluation, a subject-wise split across sessions/runs is recommended.
