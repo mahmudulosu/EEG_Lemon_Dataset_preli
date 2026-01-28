@@ -1,0 +1,33 @@
+multiclass_age_gender.yaml
+task: multiclass
+
+sampling_rate: 250
+segment_seconds: 30
+dwt_wavelet: "db4"
+dwt_level: 6
+
+feature_select_percentile: 60
+
+eeg_dir: "C:/research/common_data_eeg_eo"
+meta_csv: "C:/research/MRI/participants_LSD_andLEMON.csv"
+
+age_bins:
+  - "20-25"
+  - "25-30"
+  - "60-65"
+  - "65-70"
+  - "70-75"
+
+cv:
+  n_splits: 10
+  shuffle: true
+  random_state: 42
+
+dnn:
+  epochs: 150
+  batch_size: 32
+  dropout: 0.5
+  early_stopping_patience: 10
+  val_split: 0.1
+
+output_dir: "results"
