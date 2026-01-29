@@ -1,0 +1,59 @@
+Age Group Classification from Resting-State EEG (Eye-Open) using WPD + Subject-wise CV
+
+This project predicts age group (Young vs Old) from resting-state EEG signals.
+Participants are grouped using metadata into:
+
+Young: 20–30 years
+
+Old: 60–75 years
+
+Pipeline
+
+Load EEG CSV files (Eye-Open recordings).
+
+Segment each EEG recording into fixed windows (e.g., 2s / 5s / 30s).
+
+Artifact removal & normalization
+
+Detrend each channel to remove baseline drift
+
+Z-score normalize channel amplitudes
+
+Wavelet Packet Decomposition (WPD) features
+
+Wavelet: db4
+
+Level: 5
+
+For each channel and each level-5 node, compute:
+
+Mean
+
+RMS
+
+Feature selection
+
+ANOVA F-test (top 60% features)
+
+Subject-wise 10-fold cross-validation
+
+Ensures no participant appears in both train and test folds
+
+Models
+
+DNN (Keras)
+
+SVM (linear)
+
+Why subject-wise CV?
+
+EEG segments from the same subject are highly correlated.
+Subject-wise splitting prevents data leakage and provides a more realistic estimate of generalization.
+
+How to run
+
+Edit configuration at the top of the script:
+
+SEGMENT_SECONDS = 2 / 5 / 30
+
+MODEL_TYPE = "dnn" or "svm"
