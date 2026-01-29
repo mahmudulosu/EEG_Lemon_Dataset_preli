@@ -1,0 +1,33 @@
+UCI EEG Eye State Classification (SVM + GridSearch + t-SNE)
+
+This project trains a Support Vector Machine (SVM) classifier to predict eye state (open vs closed) from EEG features using the UCI “EEG Eye State” dataset (commonly distributed as eye_data.csv / EEG Eye State).
+
+Dataset
+
+Each row is one EEG sample.
+
+14 input features (EEG-related numeric features).
+
+1 target label: eye state (typically 0/1 where one value represents open and the other represents closed, depending on the dataset version).
+
+Method
+
+Shuffle the dataset.
+
+Split into train / validation / test.
+
+Normalize feature vectors (L2 normalization).
+
+Train SVM with hyperparameter search:
+
+C and gamma tuned using GridSearchCV.
+
+Evaluate using:
+
+Accuracy
+
+Confusion matrix
+
+Classification report
+
+Visualize feature space using t-SNE (2D embedding) colored by label
