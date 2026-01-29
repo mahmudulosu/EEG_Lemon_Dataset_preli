@@ -1,0 +1,56 @@
+EEG EC vs EO Classification (Subject-wise) using Wavelet Packet Decomposition (WPD)
+
+This project classifies resting-state EEG into:
+
+EC: Eyes Closed
+
+EO: Eyes Open
+
+using Wavelet Packet Decomposition (WPD) feature extraction and multiple machine learning models.
+
+Key idea: WPD features
+
+Instead of using raw EEG or basic time-domain features, we apply Wavelet Packet Decomposition (db4, level=5) on every EEG channel.
+WPD decomposes both approximation and detail components at each level (richer than standard DWT), producing more detailed time–frequency sub-bands.
+From each WPD node we extract statistical features:
+
+Mean
+
+Variance
+
+RMS
+
+Kurtosis
+
+Skewness
+
+Subject-wise evaluation (no leakage)
+
+EEG segments from the same participant are correlated.
+To avoid data leakage, evaluation is performed using subject-wise K-fold cross-validation, where:
+
+Train fold contains a set of subjects
+
+Test fold contains different subjects (never seen in training)
+
+Models compared
+
+The same feature set is evaluated using:
+
+DNN (Keras)
+
+SVM (Linear)
+
+Random Forest
+
+Gradient Boosting
+
+Dataset expectations
+
+EEG data stored as .csv files in one folder.
+
+Each filename must contain EC or EO to infer the label.
+
+Subject ID is extracted from filename prefix before first underscore:
+
+Example: S001_EC.csv → Subject=S001, Label=EC
